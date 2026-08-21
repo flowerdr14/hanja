@@ -89,9 +89,6 @@ export const ExamPaper: React.FC<ExamPaperProps> = ({
                     </div>
                     <div className="flex items-center gap-6">
                       <span>
-                        시험시간: <strong className="font-mono">{config.timeLimitMinutes}분</strong>
-                      </span>
-                      <span>
                         성명: <span className="inline-block min-w-20 border-b border-black text-center font-bold px-2">{studentName || config.candidateName || '          '}</span>
                       </span>
                       <span>

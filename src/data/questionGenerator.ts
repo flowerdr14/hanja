@@ -18,7 +18,7 @@ const CIRCLE_NUMBERS = ['①', '②', '③', '④', '⑤'];
 // Combine all datasets
 export const ALL_HANJA_ENTRIES: HanjaEntry[] = [...HANJA_DATABASE, ...EXTENDED_HANJA_DATA];
 
-// Deduplicate by char
+// Deduplicate by char (keeping the first entry with accurate level)
 const UNIQUE_HANJA_MAP = new Map<string, HanjaEntry>();
 ALL_HANJA_ENTRIES.forEach((h) => {
   if (!UNIQUE_HANJA_MAP.has(h.char)) {
@@ -27,8 +27,8 @@ ALL_HANJA_ENTRIES.forEach((h) => {
 });
 export const ALL_UNIQUE_HANJA = Array.from(UNIQUE_HANJA_MAP.values());
 
-// Helper to check if level a is within or equal to level b
-function getLevelIndex(level: HanjaLevel): number {
+// Helper to check level hierarchy
+export function getLevelIndex(level: HanjaLevel): number {
   const idx = HANJA_LEVELS.indexOf(level as any);
   return idx >= 0 ? idx : 0;
 }
@@ -48,7 +48,7 @@ export function getHanjaExactLevel(targetLevel: HanjaLevel): HanjaEntry[] {
   return ALL_UNIQUE_HANJA.filter((h) => h.level === targetLevel);
 }
 
-// Construct an authentic exam pool heavily weighted towards the selected level (55~60%) while including all lower levels (40~45%)
+// Construct an authentic exam pool heavily weighted towards the selected level (60%) while including only lower levels (40%)
 export function getHanjaPoolForExam(targetLevel: HanjaLevel, targetCount: number = 50): HanjaEntry[] {
   if (targetLevel === '선택') {
     return [];
@@ -58,8 +58,8 @@ export function getHanjaPoolForExam(targetLevel: HanjaLevel, targetCount: number
   const lower = upTo.filter((h) => h.level !== targetLevel);
 
   if (exact.length > 0 && lower.length > 0) {
-    // Target ratio: ~55-60% selected level, ~40-45% lower levels
-    const exactTargetCount = Math.max(1, Math.ceil(targetCount * 0.58));
+    // Target ratio: ~60% selected level, ~40% lower levels
+    const exactTargetCount = Math.max(1, Math.ceil(targetCount * 0.6));
     const lowerTargetCount = Math.max(1, targetCount - exactTargetCount);
 
     const pickedExact: HanjaEntry[] = [];
@@ -76,14 +76,13 @@ export function getHanjaPoolForExam(targetLevel: HanjaLevel, targetCount: number
       pickedLower.push(lowerShuffled.pop()!);
     }
 
-    // Shuffle both together so the selected level appears most frequently throughout the test
     return shuffle([...pickedExact, ...pickedLower]);
   } else if (exact.length > 0) {
     return shuffle(exact);
   } else if (upTo.length > 0) {
     return shuffle(upTo);
   }
-  return ALL_UNIQUE_HANJA;
+  return [];
 }
 
 // Random shuffle array (Fisher-Yates)
@@ -107,9 +106,9 @@ function createOptions(
   );
   const pickedDistractors = shuffle(uniqueDistractors).slice(0, choiceCount - 1);
 
-  // If not enough distractors, pad with fallback
+  // If not enough distractors, pad with numbered placeholders
   while (pickedDistractors.length < choiceCount - 1) {
-    pickedDistractors.push(`보기 ${pickedDistractors.length + 2}`);
+    pickedDistractors.push(`선지 ${pickedDistractors.length + 2}`);
   }
 
   const rawOptions = [
@@ -135,7 +134,6 @@ function createOptions(
 }
 
 export function generateExamSheet(config: ExamConfig): ExamSheet {
-  // If '선택', initially no questions
   if (config.level === '선택') {
     return {
       id: `exam-${Date.now()}`,
@@ -146,10 +144,11 @@ export function generateExamSheet(config: ExamConfig): ExamSheet {
   }
 
   const targetCount = Math.max(1, config.questionCount);
-  const upToHanja = getHanjaUpToLevel(config.level);
+  const targetLevelIdx = getLevelIndex(config.level);
 
-  // Hanja pool: selected level has highest proportion (~55-60%), mixed with all lower levels (~40-45%)
-  const effectivePool = getHanjaPoolForExam(config.level, targetCount * 2);
+  // Pool of Hanja strictly up to the chosen level
+  const upToHanja = getHanjaUpToLevel(config.level);
+  const effectivePool = getHanjaPoolForExam(config.level, Math.max(targetCount * 2, 40));
 
   // Selected categories
   const categories =
@@ -161,22 +160,34 @@ export function generateExamSheet(config: ExamConfig): ExamSheet {
 
   let hanjaPointer = 0;
   function nextHanja(): HanjaEntry {
+    if (effectivePool.length === 0) {
+      return (
+        upToHanja[0] || {
+          id: 'def-01',
+          char: '大',
+          sound: '대',
+          meaning: '큰',
+          meaningSound: '큰 대',
+          level: '8급',
+          radical: '大',
+          radicalName: '큰대',
+          strokes: 3,
+        }
+      );
+    }
     if (hanjaPointer >= effectivePool.length) {
       hanjaPointer = 0;
     }
     return effectivePool[hanjaPointer++];
   }
 
-  const targetLevelIdx = getLevelIndex(config.level);
-  // Idiom pool: selected level highest proportion, mixed with lower levels
-  const exactIdioms = IDIOMS_DATABASE.filter((idm) => idm.level === config.level);
-  const lowerIdioms = IDIOMS_DATABASE.filter(
-    (idm) => getLevelIndex(idm.level) <= targetLevelIdx && idm.level !== config.level
-  );
+  // Idiom pool strictly constrained to <= target level
+  const allowedIdioms = IDIOMS_DATABASE.filter((idm) => getLevelIndex(idm.level) <= targetLevelIdx);
+  const exactIdioms = allowedIdioms.filter((idm) => idm.level === config.level);
+  const lowerIdioms = allowedIdioms.filter((idm) => idm.level !== config.level);
 
   let idiomPool: typeof IDIOMS_DATABASE = [];
   if (exactIdioms.length > 0 && lowerIdioms.length > 0) {
-    // 60% selected level, 40% lower levels
     const exactIdiomCount = Math.ceil(targetCount * 0.6);
     const lowerIdiomCount = Math.max(1, targetCount - exactIdiomCount);
 
@@ -197,23 +208,32 @@ export function generateExamSheet(config: ExamConfig): ExamSheet {
     idiomPool = shuffle([...pickedExactIdioms, ...pickedLowerIdioms]);
   } else if (exactIdioms.length > 0) {
     idiomPool = shuffle(exactIdioms);
+  } else if (allowedIdioms.length > 0) {
+    idiomPool = shuffle(allowedIdioms);
   } else {
-    idiomPool = shuffle(IDIOMS_DATABASE.filter((idm) => getLevelIndex(idm.level) <= targetLevelIdx));
-  }
-
-  if (idiomPool.length === 0) {
-    idiomPool = shuffle(IDIOMS_DATABASE);
+    // Universal basic level idioms (8급 & 7급)
+    idiomPool = shuffle(IDIOMS_DATABASE.filter((idm) => idm.level === '8급' || idm.level === '7급'));
   }
 
   let idiomPointer = 0;
   function nextIdiom() {
+    if (idiomPool.length === 0) {
+      return {
+        id: 'id-def',
+        hanja: '一石二鳥',
+        reading: '일석이조',
+        meaning: '한 개의 돌을 던져 두 마리의 새를 잡음',
+        level: '8급' as HanjaLevel,
+        fillIndex: 0,
+      };
+    }
     if (idiomPointer >= idiomPool.length) {
       idiomPointer = 0;
     }
     return idiomPool[idiomPointer++];
   }
 
-  // Pre-collect distractor pools from all cumulative levels up to the selected level
+  // Pre-collect distractor pools strictly from <= targetLevel
   const distractorPool = upToHanja.length > 0 ? upToHanja : effectivePool;
   const allMeanings = distractorPool.map((h) => h.meaningSound);
   const allReadings = distractorPool.map((h) => h.sound);
@@ -224,14 +244,12 @@ export function generateExamSheet(config: ExamConfig): ExamSheet {
     const qNum = i + 1;
     const category = categories[i % categories.length];
 
-    // Determine format based on config
     let format: QuestionFormat = 'subjective';
     if (config.formatMode === 'multiple_choice_only') {
       format = 'multiple_choice';
     } else if (config.formatMode === 'subjective_only') {
       format = 'subjective';
     } else {
-      // Mixed mode: 50% multiple choice, 50% subjective, or alternating
       format = i % 2 === 0 ? 'subjective' : 'multiple_choice';
     }
 
@@ -242,7 +260,7 @@ export function generateExamSheet(config: ExamConfig): ExamSheet {
       choiceCount: config.choiceCount,
       nextHanja,
       nextIdiom,
-      allHanja: effectivePool,
+      allHanja: distractorPool,
       allMeanings,
       allReadings,
       allWords,
@@ -285,7 +303,6 @@ function buildQuestionItem(params: BuildQuestionParams): QuestionItem {
     nextHanja,
     nextIdiom,
     allHanja,
-    allMeanings,
     allReadings,
     allWords,
     allRadicals,
@@ -383,7 +400,10 @@ function buildQuestionItem(params: BuildQuestionParams): QuestionItem {
     case 'reading': {
       // 독음 (한자어 -> 읽는 소리)
       const h = nextHanja();
-      const wordObj = h.words && h.words.length > 0 ? h.words[0] : { word: `${h.char}字`, reading: `${h.sound}자`, meaning: '한자' };
+      const wordObj =
+        h.words && h.words.length > 0
+          ? h.words[0]
+          : { word: `${h.char}字`, reading: `${h.sound}자`, meaning: '한자' };
       const answer = wordObj.reading;
       const categoryLabel = '한자어 독음';
       const instruction = '다음 밑줄 친 한자어의 올바른 독음(읽는 소리)을 쓰시오.';
@@ -428,7 +448,10 @@ function buildQuestionItem(params: BuildQuestionParams): QuestionItem {
       // 한자어 / 빈칸에 알맞은 한자 쓰기
       const idiom = nextIdiom();
       const targetChar = idiom.hanja[idiom.fillIndex ?? 0] || idiom.hanja[0];
-      const maskedHanja = idiom.hanja.split('').map((c, i) => (i === (idiom.fillIndex ?? 0) ? '(        )' : c)).join(' ');
+      const maskedHanja = idiom.hanja
+        .split('')
+        .map((c, i) => (i === (idiom.fillIndex ?? 0) ? '(        )' : c))
+        .join(' ');
       const answer = targetChar;
       const categoryLabel = '빈칸에 알맞은 한자 쓰기';
       const instruction = '다음을 보고 빈칸에 알맞은 한자를 쓰시오.';
@@ -468,21 +491,79 @@ function buildQuestionItem(params: BuildQuestionParams): QuestionItem {
     }
 
     case 'synonym_antonym': {
-      // 반의어 / 유의어
-      const candidates = allHanja.filter((h) => (h.antonyms && h.antonyms.length > 0) || (h.synonyms && h.synonyms.length > 0));
-      const chosen = candidates[Math.floor(Math.random() * candidates.length)] || allHanja[0];
-      const isAntonym = Boolean(chosen.antonyms && chosen.antonyms.length > 0);
-      const targetChar = isAntonym ? chosen.antonyms![0] : (chosen.synonyms ? chosen.synonyms[0] : '小');
+      // 반의어 / 유의어 (반드시 허용 급수 내 한자들로만 페어 구성)
+      const validPairs: {
+        char: string;
+        target: string;
+        isAntonym: boolean;
+        entry: HanjaEntry;
+        targetEntry?: HanjaEntry;
+      }[] = [];
+
+      allHanja.forEach((h) => {
+        if (h.antonyms && h.antonyms.length > 0) {
+          h.antonyms.forEach((a) => {
+            const match = allHanja.find((x) => x.char === a);
+            if (match) {
+              validPairs.push({
+                char: h.char,
+                target: a,
+                isAntonym: true,
+                entry: h,
+                targetEntry: match,
+              });
+            }
+          });
+        }
+        if (h.synonyms && h.synonyms.length > 0) {
+          h.synonyms.forEach((s) => {
+            const match = allHanja.find((x) => x.char === s);
+            if (match) {
+              validPairs.push({
+                char: h.char,
+                target: s,
+                isAntonym: false,
+                entry: h,
+                targetEntry: match,
+              });
+            }
+          });
+        }
+      });
+
+      let chosenPair =
+        validPairs.length > 0
+          ? validPairs[Math.floor(Math.random() * validPairs.length)]
+          : null;
+
+      if (!chosenPair) {
+        // Guaranteed standard basic pairs present in 8급/7급
+        const fallbackH = allHanja.find((x) => x.char === '大') || nextHanja();
+        const opposite = fallbackH.char === '大' ? '小' : fallbackH.char === '上' ? '下' : '小';
+        chosenPair = {
+          char: fallbackH.char,
+          target: opposite,
+          isAntonym: true,
+          entry: fallbackH,
+          targetEntry: allHanja.find((x) => x.char === opposite),
+        };
+      }
+
+      const isAntonym = chosenPair.isAntonym;
+      const chosen = chosenPair.entry;
+      const targetChar = chosenPair.target;
       const relationText = isAntonym ? '상대(반대)' : '유의(비슷한)';
       const answer = targetChar;
-      const targetEntry = allHanja.find((x) => x.char === targetChar);
+      const targetEntry = chosenPair.targetEntry;
 
       const categoryLabel = `유의·반의 (${relationText})`;
       const instruction = `다음 한자와 뜻이 ${relationText}되는 한자를 쓰시오.`;
       const prompt = `【 ${chosen.char} (${chosen.meaningSound}) 】 ↔ (        )`;
 
       if (format === 'multiple_choice') {
-        const distractors = allHanja.filter((x) => x.char !== answer && x.char !== chosen.char).map((x) => x.char);
+        const distractors = allHanja
+          .filter((x) => x.char !== answer && x.char !== chosen.char)
+          .map((x) => x.char);
         const { options, answerChoiceNum } = createOptions(answer, distractors, choiceCount);
         return {
           id: `q-${qNum}`,
@@ -608,14 +689,17 @@ function buildQuestionItem(params: BuildQuestionParams): QuestionItem {
     case 'simplified': {
       // 약자
       const candidates = allHanja.filter((h) => h.simplified && h.simplified !== h.char);
-      const chosen = candidates[Math.floor(Math.random() * candidates.length)] || {
-        char: '學',
-        simplified: '学',
-        meaningSound: '배울 학',
-        radical: '子',
-        strokes: 16,
-      };
-      const answer = chosen.simplified!;
+      const chosen =
+        candidates.length > 0
+          ? candidates[Math.floor(Math.random() * candidates.length)]
+          : allHanja.find((h) => h.char === '學') || {
+              char: '學',
+              simplified: '学',
+              meaningSound: '배울 학',
+              radical: '子',
+              strokes: 16,
+            };
+      const answer = chosen.simplified || chosen.char;
       const categoryLabel = '약자 (略字)';
       const instruction = '다음 본자(정자)에 해당하는 약자(略字)를 쓰시오.';
       const prompt = `【 ${chosen.char} (${chosen.meaningSound}) 】 의 약자  →  (        )`;
@@ -659,25 +743,33 @@ function buildQuestionItem(params: BuildQuestionParams): QuestionItem {
 
     case 'multiple_readings': {
       // 동자이음
-      const candidates = allHanja.filter((h) => h.multipleReadings && h.multipleReadings.length >= 2);
-      const chosen = candidates[Math.floor(Math.random() * candidates.length)] || {
-        char: '樂',
-        meaningSound: '즐길 락 / 음악 악 / 좋아할 요',
-        multipleReadings: [
-          { sound: '악', meaning: '음악', context: '音樂(음악)' },
-          { sound: '락', meaning: '즐거움', context: '快樂(쾌락)' },
-          { sound: '요', meaning: '좋아함', context: '樂山樂水(요산요수)' },
-        ],
-      };
+      const candidates = allHanja.filter(
+        (h) => h.multipleReadings && h.multipleReadings.length >= 2
+      );
+      const chosen =
+        candidates.length > 0
+          ? candidates[Math.floor(Math.random() * candidates.length)]
+          : allHanja.find((h) => h.char === '見') || {
+              char: '見',
+              meaningSound: '볼 견 / 나타날 현',
+              multipleReadings: [
+                { sound: '견', meaning: '보다', context: '見解(견해)' },
+                { sound: '현', meaning: '나타나다, 뵙다', context: '謁見(알현)' },
+              ],
+            };
 
-      const readingItem = chosen.multipleReadings![Math.floor(Math.random() * chosen.multipleReadings!.length)];
+      const readingItem =
+        chosen.multipleReadings && chosen.multipleReadings.length > 0
+          ? chosen.multipleReadings[Math.floor(Math.random() * chosen.multipleReadings.length)]
+          : { sound: '견', meaning: '보다', context: '見解(견해)' };
+
       const answer = readingItem.sound;
       const categoryLabel = '동자이음 (同字異音)';
       const instruction = '다음 단어에서 한자의 올바른 소리(독음)를 쓰시오.';
       const prompt = `【 ${readingItem.context.split('(')[0]} 】 에서 [ ${chosen.char} ]의 독음  →  (        )`;
 
       if (format === 'multiple_choice') {
-        const distractors = ['락', '악', '요', '살', '쇄', '차', '거', '북', '배', '역', '이'].filter((s) => s !== answer);
+        const distractors = allReadings.filter((s) => s !== answer);
         const { options, answerChoiceNum } = createOptions(answer, distractors, choiceCount);
         return {
           id: `q-${qNum}`,
@@ -710,7 +802,7 @@ function buildQuestionItem(params: BuildQuestionParams): QuestionItem {
     }
 
     case 'vowel_length': {
-      // 장단음
+      // 장단음 (기초/표준 어휘)
       const longList = [
         { word: '言語 (언어)', isLong: true, reason: '말씀 언(言)은 첫음절에서 장음(:)' },
         { word: '敎育 (교육)', isLong: true, reason: '가르칠 교(敎)는 첫음절에서 장음(:)' },

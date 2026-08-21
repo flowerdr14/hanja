@@ -277,24 +277,14 @@ export const ExamConfigModal: React.FC<ExamConfigModalProps> = ({
 
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">
-                시험 제한 시간 (분)
+                시험 시행일자
               </label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  min="5"
-                  max="180"
-                  value={config.timeLimitMinutes}
-                  onChange={(e) =>
-                    onChangeConfig({
-                      ...config,
-                      timeLimitMinutes: Math.max(1, parseInt(e.target.value) || 30),
-                    })
-                  }
-                  className="w-24 px-3 py-2 text-xs font-mono font-bold border border-slate-300 rounded-xl"
-                />
-                <span className="text-xs text-slate-500">분</span>
-              </div>
+              <input
+                type="date"
+                value={config.examDate}
+                onChange={(e) => onChangeConfig({ ...config, examDate: e.target.value })}
+                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 font-mono"
+              />
             </div>
           </div>
 
