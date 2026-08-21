@@ -126,19 +126,6 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Right Actions & Print */}
         <div className="flex items-center gap-2">
-          {/* Quick Level Switcher Dropdown */}
-          <select
-            value={config.level}
-            onChange={(e) => onChangeLevel(e.target.value as HanjaLevel)}
-            className="text-xs font-bold font-mono bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-slate-800 focus:ring-2 focus:ring-indigo-500 cursor-pointer"
-          >
-            {HANJA_LEVELS.map((lvl) => (
-              <option key={lvl} value={lvl}>
-                {lvl}
-              </option>
-            ))}
-          </select>
-
           {/* Quick Random Generation */}
           <button
             type="button"

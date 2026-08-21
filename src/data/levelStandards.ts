@@ -29,7 +29,17 @@ export const HANJA_LEVELS: HanjaLevel[] = [
   '1급',
 ];
 
-export const LEVEL_DETAILS: Record<HanjaLevel, LevelInfo> = {
+export const LEVEL_DETAILS: Record<string, LevelInfo> = {
+  '선택': {
+    level: '선택',
+    charCount: 50,
+    cumulativeCount: 50,
+    difficulty: '급수 선택',
+    targetAudience: '전체',
+    recommendedTime: 40,
+    passScoreRatio: 0.7,
+    description: '급수를 선택하여 맞춤형 시험지를 생성하세요.',
+  },
   '8급': {
     level: '8급',
     charCount: 50,

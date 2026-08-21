@@ -1,4 +1,5 @@
 export type HanjaLevel =
+  | '선택'
   | '8급'
   | '준7급'
   | '7급'
