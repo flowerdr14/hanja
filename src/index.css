@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+@layer base {
+  @media print {
+    /* Hide non-printable elements */
+    .no-print {
+      display: none !important;
+    }
+
+    /* Force printable elements to show */
+    .print-only {
+      display: block !important;
+    }
+
+    body {
+      background: white !important;
+      color: black !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      font-size: 10.5pt !important;
+      line-height: 1.4 !important;
+    }
+
+    @page {
+      size: A4 portrait;
+      margin: 8mm 8mm 8mm 8mm;
+    }
+
+    .a4-page {
+      page-break-after: always;
+      break-after: page;
+      margin: 0 !important;
+      padding: 4mm 2mm !important;
+      box-shadow: none !important;
+      border: none !important;
+      width: 100% !important;
+      min-height: 275mm !important;
+      height: auto !important;
+    }
+
+    .break-inside-avoid {
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+  }
+}
+
+/* Hanja Font Serif & Myeongjo styling */
+.font-hanja {
+  font-family: 'Nanum Myeongjo', 'Batang', 'Songti SC', 'SimSun', serif;
+}
+
+.font-sans-korean {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Malgun Gothic', sans-serif;
+}
+
+/* Writing practice grid styling */
+.hanja-grid-box {
+  position: relative;
+  background-size: 100% 100%;
+}
+
+.hanja-grid-box::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  border-top: 1px dashed #cbd5e1;
+}
+
+.hanja-grid-box::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  border-left: 1px dashed #cbd5e1;
+}
+

@@ -1,0 +1,6 @@
+{
+  "name": "한자능력검정 시험지 생성기",
+  "description": "급수별 한자 100문제 자동출제, 훈음·독음·장단음·한자어·유의어/반의어·부수·획수·약자·동자이음·한자쓰기 시험지/답안지 인쇄 및 PDF 저장 지원",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

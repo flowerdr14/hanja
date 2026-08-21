@@ -1,0 +1,236 @@
+import { HanjaLevel, QuestionCategory } from '../types';
+
+export interface LevelInfo {
+  level: HanjaLevel;
+  charCount: number;
+  cumulativeCount: number;
+  difficulty: string;
+  targetAudience: string;
+  recommendedTime: number; // minutes for 100 questions
+  passScoreRatio: number; // 0.7 = 70%
+  description: string;
+}
+
+export const HANJA_LEVELS: HanjaLevel[] = [
+  '8급',
+  '준7급',
+  '7급',
+  '준6급',
+  '6급',
+  '준5급',
+  '5급',
+  '준4급',
+  '4급',
+  '준3급',
+  '3급',
+  '준2급',
+  '2급',
+  '준1급',
+  '1급',
+];
+
+export const LEVEL_DETAILS: Record<HanjaLevel, LevelInfo> = {
+  '8급': {
+    level: '8급',
+    charCount: 50,
+    cumulativeCount: 50,
+    difficulty: '입문 (기초 기초)',
+    targetAudience: '유아 및 초등 저학년 입문',
+    recommendedTime: 40,
+    passScoreRatio: 0.7,
+    description: '숫자, 방향, 요일, 가족 등 가장 기초적인 일상 한자 50자',
+  },
+  '준7급': {
+    level: '준7급',
+    charCount: 50,
+    cumulativeCount: 100,
+    difficulty: '기초 1단계',
+    targetAudience: '초등 1~2학년',
+    recommendedTime: 40,
+    passScoreRatio: 0.7,
+    description: '자연, 색상, 기본 생활 한자 100자',
+  },
+  '7급': {
+    level: '7급',
+    charCount: 50,
+    cumulativeCount: 150,
+    difficulty: '기초 2단계',
+    targetAudience: '초등 2~3학년',
+    recommendedTime: 45,
+    passScoreRatio: 0.7,
+    description: '신체, 계절, 학교 생활 관련 한자 150자',
+  },
+  '준6급': {
+    level: '준6급',
+    charCount: 75,
+    cumulativeCount: 225,
+    difficulty: '초급 1단계',
+    targetAudience: '초등 3~4학년',
+    recommendedTime: 45,
+    passScoreRatio: 0.7,
+    description: '기본 한자어 조합 및 2음절 단어 225자',
+  },
+  '6급': {
+    level: '6급',
+    charCount: 75,
+    cumulativeCount: 300,
+    difficulty: '초급 2단계',
+    targetAudience: '초등 4~5학년',
+    recommendedTime: 50,
+    passScoreRatio: 0.7,
+    description: '초등 교과서 핵심 어휘 관련 한자 300자',
+  },
+  '준5급': {
+    level: '준5급',
+    charCount: 100,
+    cumulativeCount: 400,
+    difficulty: '중급 전단계',
+    targetAudience: '초등 5~6학년',
+    recommendedTime: 50,
+    passScoreRatio: 0.7,
+    description: '기초 고사성어 및 부수 학습 연계 400자',
+  },
+  '5급': {
+    level: '5급',
+    charCount: 100,
+    cumulativeCount: 500,
+    difficulty: '중급 1단계',
+    targetAudience: '초등 고학년 및 중학생',
+    recommendedTime: 50,
+    passScoreRatio: 0.7,
+    description: '중등 교과용 한자 및 생활 사자성어 500자',
+  },
+  '준4급': {
+    level: '준4급',
+    charCount: 250,
+    cumulativeCount: 750,
+    difficulty: '중급 2단계',
+    targetAudience: '중학생',
+    recommendedTime: 55,
+    passScoreRatio: 0.7,
+    description: '중등 심화 어휘 및 동음이의어 구별 750자',
+  },
+  '4급': {
+    level: '4급',
+    charCount: 250,
+    cumulativeCount: 1000,
+    difficulty: '중급 완성 (1,000자)',
+    targetAudience: '중·고등학생 및 일반',
+    recommendedTime: 60,
+    passScoreRatio: 0.7,
+    description: '천자문 수준 및 중등 교육용 기초 한자 1,000자 완성',
+  },
+  '준3급': {
+    level: '준3급',
+    charCount: 500,
+    cumulativeCount: 1500,
+    difficulty: '상급 입문',
+    targetAudience: '고등학생 및 대학생',
+    recommendedTime: 60,
+    passScoreRatio: 0.7,
+    description: '고등 교과서 및 신문·교양 한자어 1,500자',
+  },
+  '3급': {
+    level: '3급',
+    charCount: 317,
+    cumulativeCount: 1817,
+    difficulty: '국가공인 상급 (1,800자)',
+    targetAudience: '취업·공무원·대입 가산점 대비',
+    recommendedTime: 60,
+    passScoreRatio: 0.7,
+    description: '교육용 기초 한자 1,800자 및 국가공인 공인급수 자격증 기준',
+  },
+  '준2급': {
+    level: '준2급',
+    charCount: 488,
+    cumulativeCount: 2305,
+    difficulty: '고급 1단계',
+    targetAudience: '전문 교양인 및 한자 지도사',
+    recommendedTime: 60,
+    passScoreRatio: 0.7,
+    description: '고전 원문 기초 독해 및 전문 학술 용어 2,305자',
+  },
+  '2급': {
+    level: '2급',
+    charCount: 450,
+    cumulativeCount: 2755,
+    difficulty: '고급 2단계',
+    targetAudience: '한문학 전공 및 전문 자격',
+    recommendedTime: 60,
+    passScoreRatio: 0.7,
+    description: '인명/지명/법률/행정 전문 한자 2,755자',
+  },
+  '준1급': {
+    level: '준1급',
+    charCount: 745,
+    cumulativeCount: 3500,
+    difficulty: '전문가 1단계',
+    targetAudience: '고전자료 연구 및 전문 번역',
+    recommendedTime: 70,
+    passScoreRatio: 0.8,
+    description: '고전 원전 자유 독해 및 희귀 한자 3,500자',
+  },
+  '1급': {
+    level: '1급',
+    charCount: 1500,
+    cumulativeCount: 5000,
+    difficulty: '최고급 사범 직전 (사서삼경)',
+    targetAudience: '최고급 한문 고전 연구자',
+    recommendedTime: 70,
+    passScoreRatio: 0.8,
+    description: '사서삼경, 동양 고전문헌 완전 해독 5,000자',
+  },
+};
+
+export const CATEGORY_NAMES: Record<QuestionCategory, { label: string; desc: string; icon: string }> = {
+  meaning_sound: {
+    label: '훈음 (뜻과 음)',
+    desc: '한자를 보고 한국어 뜻과 음을 쓰거나 고르기',
+    icon: 'BookOpen',
+  },
+  reading: {
+    label: '독음 (읽기)',
+    desc: '2~4글자 한자어의 정확한 소리(발음) 쓰기',
+    icon: 'Volume2',
+  },
+  write_hanja: {
+    label: '한자 쓰기',
+    desc: '뜻과 음을 보고 올바른 한자 직접 쓰기',
+    icon: 'Edit3',
+  },
+  words_fill: {
+    label: '한자어 / 빈칸',
+    desc: '문장 속 빈칸에 들어갈 한자어 및 사자성어 채우기',
+    icon: 'FileText',
+  },
+  synonym_antonym: {
+    label: '유의어 / 반의어',
+    desc: '뜻이 같거나 반대되는 한자·한자어 찾기',
+    icon: 'ArrowLeftRight',
+  },
+  radical: {
+    label: '부수 (部首)',
+    desc: '한자의 모체인 부수 식별 및 명칭 찾기',
+    icon: 'Layers',
+  },
+  strokes: {
+    label: '획수 / 필순',
+    desc: '총 획수 세기 및 올바른 획순 고르기',
+    icon: 'Hash',
+  },
+  simplified: {
+    label: '약자 (略字)',
+    desc: '정자(본자)에 해당하는 약자 또는 본자 찾기',
+    icon: 'Minimize2',
+  },
+  multiple_readings: {
+    label: '동자이음 (同字異音)',
+    desc: '한 글자에 뜻과 소리가 여러 개인 한자의 문맥별 독음',
+    icon: 'Shuffle',
+  },
+  vowel_length: {
+    label: '장단음 (長短音)',
+    desc: '첫음절이 길게 소리 나는 장음(長音)과 단음 구별',
+    icon: 'Activity',
+  },
+};
