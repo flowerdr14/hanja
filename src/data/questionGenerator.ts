@@ -48,19 +48,38 @@ export function getHanjaExactLevel(targetLevel: HanjaLevel): HanjaEntry[] {
   return ALL_UNIQUE_HANJA.filter((h) => h.level === targetLevel);
 }
 
-// Construct an authentic exam pool heavily weighted towards the selected level
-export function getHanjaPoolForExam(targetLevel: HanjaLevel): HanjaEntry[] {
+// Construct an authentic exam pool heavily weighted towards the selected level (55~60%) while including all lower levels (40~45%)
+export function getHanjaPoolForExam(targetLevel: HanjaLevel, targetCount: number = 50): HanjaEntry[] {
   if (targetLevel === '선택') {
     return [];
   }
   const exact = getHanjaExactLevel(targetLevel);
   const upTo = getHanjaUpToLevel(targetLevel);
+  const lower = upTo.filter((h) => h.level !== targetLevel);
 
-  if (exact.length >= 25) {
-    // If enough exact level characters, mix 70% exact level + 30% cumulative level
-    const exactShuffled = shuffle(exact);
-    const cumulativeShuffled = shuffle(upTo.filter((h) => h.level !== targetLevel));
-    return [...exactShuffled, ...cumulativeShuffled];
+  if (exact.length > 0 && lower.length > 0) {
+    // Target ratio: ~55-60% selected level, ~40-45% lower levels
+    const exactTargetCount = Math.max(1, Math.ceil(targetCount * 0.58));
+    const lowerTargetCount = Math.max(1, targetCount - exactTargetCount);
+
+    const pickedExact: HanjaEntry[] = [];
+    let exactShuffled = shuffle(exact);
+    while (pickedExact.length < exactTargetCount) {
+      if (exactShuffled.length === 0) exactShuffled = shuffle(exact);
+      pickedExact.push(exactShuffled.pop()!);
+    }
+
+    const pickedLower: HanjaEntry[] = [];
+    let lowerShuffled = shuffle(lower);
+    while (pickedLower.length < lowerTargetCount) {
+      if (lowerShuffled.length === 0) lowerShuffled = shuffle(lower);
+      pickedLower.push(lowerShuffled.pop()!);
+    }
+
+    // Shuffle both together so the selected level appears most frequently throughout the test
+    return shuffle([...pickedExact, ...pickedLower]);
+  } else if (exact.length > 0) {
+    return shuffle(exact);
   } else if (upTo.length > 0) {
     return shuffle(upTo);
   }
@@ -126,8 +145,11 @@ export function generateExamSheet(config: ExamConfig): ExamSheet {
     };
   }
 
-  const hanjaPool = getHanjaPoolForExam(config.level);
-  const effectivePool = hanjaPool.length > 0 ? hanjaPool : ALL_UNIQUE_HANJA;
+  const targetCount = Math.max(1, config.questionCount);
+  const upToHanja = getHanjaUpToLevel(config.level);
+
+  // Hanja pool: selected level has highest proportion (~55-60%), mixed with all lower levels (~40-45%)
+  const effectivePool = getHanjaPoolForExam(config.level, targetCount * 2);
 
   // Selected categories
   const categories =
@@ -136,43 +158,67 @@ export function generateExamSheet(config: ExamConfig): ExamSheet {
       : (['meaning_sound', 'reading', 'write_hanja', 'words_fill'] as QuestionCategory[]);
 
   const questions: QuestionItem[] = [];
-  const targetCount = Math.max(1, config.questionCount);
 
-  // Shuffle pools
-  let shuffledHanja = shuffle(effectivePool);
   let hanjaPointer = 0;
-
   function nextHanja(): HanjaEntry {
-    if (hanjaPointer >= shuffledHanja.length) {
-      shuffledHanja = shuffle(effectivePool);
+    if (hanjaPointer >= effectivePool.length) {
       hanjaPointer = 0;
     }
-    return shuffledHanja[hanjaPointer++];
+    return effectivePool[hanjaPointer++];
   }
 
   const targetLevelIdx = getLevelIndex(config.level);
-  let idiomPool = shuffle(
-    IDIOMS_DATABASE.filter((idm) => getLevelIndex(idm.level) <= targetLevelIdx)
+  // Idiom pool: selected level highest proportion, mixed with lower levels
+  const exactIdioms = IDIOMS_DATABASE.filter((idm) => idm.level === config.level);
+  const lowerIdioms = IDIOMS_DATABASE.filter(
+    (idm) => getLevelIndex(idm.level) <= targetLevelIdx && idm.level !== config.level
   );
+
+  let idiomPool: typeof IDIOMS_DATABASE = [];
+  if (exactIdioms.length > 0 && lowerIdioms.length > 0) {
+    // 60% selected level, 40% lower levels
+    const exactIdiomCount = Math.ceil(targetCount * 0.6);
+    const lowerIdiomCount = Math.max(1, targetCount - exactIdiomCount);
+
+    const pickedExactIdioms: typeof IDIOMS_DATABASE = [];
+    let shufExact = shuffle(exactIdioms);
+    while (pickedExactIdioms.length < exactIdiomCount) {
+      if (shufExact.length === 0) shufExact = shuffle(exactIdioms);
+      pickedExactIdioms.push(shufExact.pop()!);
+    }
+
+    const pickedLowerIdioms: typeof IDIOMS_DATABASE = [];
+    let shufLower = shuffle(lowerIdioms);
+    while (pickedLowerIdioms.length < lowerIdiomCount) {
+      if (shufLower.length === 0) shufLower = shuffle(lowerIdioms);
+      pickedLowerIdioms.push(shufLower.pop()!);
+    }
+
+    idiomPool = shuffle([...pickedExactIdioms, ...pickedLowerIdioms]);
+  } else if (exactIdioms.length > 0) {
+    idiomPool = shuffle(exactIdioms);
+  } else {
+    idiomPool = shuffle(IDIOMS_DATABASE.filter((idm) => getLevelIndex(idm.level) <= targetLevelIdx));
+  }
+
   if (idiomPool.length === 0) {
     idiomPool = shuffle(IDIOMS_DATABASE);
   }
-  let idiomPointer = 0;
 
+  let idiomPointer = 0;
   function nextIdiom() {
     if (idiomPointer >= idiomPool.length) {
-      idiomPool = shuffle(IDIOMS_DATABASE.filter((idm) => getLevelIndex(idm.level) <= targetLevelIdx));
-      if (idiomPool.length === 0) idiomPool = shuffle(IDIOMS_DATABASE);
       idiomPointer = 0;
     }
     return idiomPool[idiomPointer++];
   }
 
-  // Pre-collect distractor pools strictly from the level's effective pool
-  const allMeanings = effectivePool.map((h) => h.meaningSound);
-  const allReadings = effectivePool.map((h) => h.sound);
-  const allWords = effectivePool.flatMap((h) => h.words?.map((w) => w.reading) || []);
-  const allRadicals = effectivePool.map((h) => h.radical);
+  // Pre-collect distractor pools from all cumulative levels up to the selected level
+  const distractorPool = upToHanja.length > 0 ? upToHanja : effectivePool;
+  const allMeanings = distractorPool.map((h) => h.meaningSound);
+  const allReadings = distractorPool.map((h) => h.sound);
+  const allWords = distractorPool.flatMap((h) => h.words?.map((w) => w.reading) || []);
+  const allRadicals = distractorPool.map((h) => h.radical);
 
   for (let i = 0; i < targetCount; i++) {
     const qNum = i + 1;

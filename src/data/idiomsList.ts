@@ -1,6 +1,7 @@
 import { HanjaIdiom } from '../types';
 
 export const IDIOMS_DATABASE: HanjaIdiom[] = [
+  // === 8급 ~ 7급 ===
   {
     id: 'id-01',
     hanja: '一石二鳥',
@@ -12,12 +13,11 @@ export const IDIOMS_DATABASE: HanjaIdiom[] = [
   },
   {
     id: 'id-02',
-    hanja: '同苦同樂',
-    reading: '동고동락',
-    meaning: '괴로움과 즐거움을 함께 나눔',
+    hanja: '春夏秋冬',
+    reading: '춘하추동',
+    meaning: '봄, 여름, 가을, 겨울의 사계절',
     level: '7급',
     fillIndex: 3,
-    origin: '사기(史記)',
   },
   {
     id: 'id-03',
@@ -29,6 +29,17 @@ export const IDIOMS_DATABASE: HanjaIdiom[] = [
   },
   {
     id: 'id-04',
+    hanja: '同苦同樂',
+    reading: '동고동락',
+    meaning: '괴로움과 즐거움을 함께 나눔',
+    level: '7급',
+    fillIndex: 3,
+    origin: '사기(史記)',
+  },
+
+  // === 6급 ~ 준5급 ===
+  {
+    id: 'id-05',
     hanja: '十全十美',
     reading: '십전십미',
     meaning: '조금도 흠이 없이 완전무결함',
@@ -36,7 +47,7 @@ export const IDIOMS_DATABASE: HanjaIdiom[] = [
     fillIndex: 3,
   },
   {
-    id: 'id-05',
+    id: 'id-06',
     hanja: '門前成市',
     reading: '문전성시',
     meaning: '찾아오는 사람이 많아 문 앞이 시장을 이룸',
@@ -45,7 +56,7 @@ export const IDIOMS_DATABASE: HanjaIdiom[] = [
     origin: '한서(漢書)',
   },
   {
-    id: 'id-06',
+    id: 'id-07',
     hanja: '百戰百勝',
     reading: '백전백승',
     meaning: '백 번 싸워 백 번 모두 이김',
@@ -54,7 +65,17 @@ export const IDIOMS_DATABASE: HanjaIdiom[] = [
     origin: '손자병법(孫子兵法)',
   },
   {
-    id: 'id-07',
+    id: 'id-08',
+    hanja: '四通八達',
+    reading: '사통팔달',
+    meaning: '길이 사방으로 널리 통하여 왕래하기 편리함',
+    level: '6급',
+    fillIndex: 1,
+  },
+
+  // === 5급 ===
+  {
+    id: 'id-09',
     hanja: '日新又日新',
     reading: '일신우일신',
     meaning: '날마다 새로워지고 또 새로워짐',
@@ -63,7 +84,7 @@ export const IDIOMS_DATABASE: HanjaIdiom[] = [
     origin: '대학(大學)',
   },
   {
-    id: 'id-08',
+    id: 'id-10',
     hanja: '金石之交',
     reading: '금석지교',
     meaning: '쇠와 돌처럼 굳고 변함없는 깊은 우정',
@@ -72,7 +93,7 @@ export const IDIOMS_DATABASE: HanjaIdiom[] = [
     origin: '한서(漢書)',
   },
   {
-    id: 'id-09',
+    id: 'id-11',
     hanja: '九死一生',
     reading: '구사일생',
     meaning: '아홉 번 죽을 뻔하다가 한 번 살아난다는 뜻으로, 구사일생으로 목숨을 건짐',
@@ -81,7 +102,67 @@ export const IDIOMS_DATABASE: HanjaIdiom[] = [
     origin: '초사(楚辭)',
   },
   {
-    id: 'id-10',
+    id: 'id-12',
+    hanja: '錦繡江山',
+    reading: '금수강산',
+    meaning: '비단에 수를 놓은 듯 아름다운 산천',
+    level: '5급',
+    fillIndex: 0,
+  },
+  {
+    id: 'id-13',
+    hanja: '衣錦還鄕',
+    reading: '의금환향',
+    meaning: '비단옷을 입고 고향으로 돌아옴',
+    level: '5급',
+    fillIndex: 1,
+    origin: '사기(史記)',
+  },
+  {
+    id: 'id-14',
+    hanja: '晴耕雨讀',
+    reading: '청경우독',
+    meaning: '맑은 날에는 밭을 갈고 비 오는 날에는 글을 읽음',
+    level: '5급',
+    fillIndex: 1,
+  },
+  {
+    id: 'id-15',
+    hanja: '勸善懲惡',
+    reading: '권선징악',
+    meaning: '착한 일을 권장하고 악한 일을 징벌함',
+    level: '5급',
+    fillIndex: 0,
+  },
+  {
+    id: 'id-16',
+    hanja: '取捨選擇',
+    reading: '취사선택',
+    meaning: '쓸 것은 취하고 버릴 것은 버려서 골라잡음',
+    level: '5급',
+    fillIndex: 1,
+  },
+  {
+    id: 'id-17',
+    hanja: '巧言令色',
+    reading: '교언령색',
+    meaning: '남의 환심을 사려고 번지르르하게 늘어놓는 말과 알랑거리는 태도',
+    level: '5급',
+    fillIndex: 0,
+    origin: '논어(論語)',
+  },
+  {
+    id: 'id-18',
+    hanja: '窮餘之策',
+    reading: '궁여지책',
+    meaning: '궁한 끝에 생각해 낸 꾀',
+    level: '5급',
+    fillIndex: 0,
+  },
+
+  // === 4급 ~ 3급 ===
+  {
+    id: 'id-19',
     hanja: '大同小異',
     reading: '대동소이',
     meaning: '대체로 같고 사소한 차이만 있음',
@@ -90,7 +171,7 @@ export const IDIOMS_DATABASE: HanjaIdiom[] = [
     origin: '장자(莊子)',
   },
   {
-    id: 'id-11',
+    id: 'id-20',
     hanja: '見利思義',
     reading: '견리사의',
     meaning: '눈앞의 이익을 보면 의리에 합당한가를 먼저 생각함',
@@ -99,7 +180,7 @@ export const IDIOMS_DATABASE: HanjaIdiom[] = [
     origin: '논어(論語)',
   },
   {
-    id: 'id-12',
+    id: 'id-21',
     hanja: '事必歸正',
     reading: '사필귀정',
     meaning: '모든 일은 반드시 바른길로 돌아감',
@@ -107,7 +188,7 @@ export const IDIOMS_DATABASE: HanjaIdiom[] = [
     fillIndex: 3,
   },
   {
-    id: 'id-13',
+    id: 'id-22',
     hanja: '臥薪嘗膽',
     reading: '와신상담',
     meaning: '섶에 누워 쓸개를 맛본다는 뜻으로, 원수를 갚거나 목적을 이루기 위해 온갖 괴로움을 참고 견딤',
@@ -116,7 +197,7 @@ export const IDIOMS_DATABASE: HanjaIdiom[] = [
     origin: '사기(史記)',
   },
   {
-    id: 'id-14',
+    id: 'id-23',
     hanja: '苦盡甘來',
     reading: '고진감래',
     meaning: '고생 끝에 낙이 옴',
@@ -124,7 +205,17 @@ export const IDIOMS_DATABASE: HanjaIdiom[] = [
     fillIndex: 0,
   },
   {
-    id: 'id-15',
+    id: 'id-24',
+    hanja: '苛斂誅求',
+    reading: '가렴주구',
+    meaning: '세금을 가혹하게 거두어들이고 백성의 재물을 억지로 빼앗음',
+    level: '3급',
+    fillIndex: 0,
+  },
+
+  // === 2급 ~ 1급 ===
+  {
+    id: 'id-25',
     hanja: '囊中之錐',
     reading: '낭중지추',
     meaning: '주머니 속의 송곳이라는 뜻으로, 재능이 뛰어난 사람은 숨어 있어도 저절로 드러남',
@@ -133,7 +224,7 @@ export const IDIOMS_DATABASE: HanjaIdiom[] = [
     origin: '사기(史記)',
   },
   {
-    id: 'id-16',
+    id: 'id-26',
     hanja: '塞翁之馬',
     reading: '새옹지마',
     meaning: '인생의 길흉화복은 변화가 많아 예측하기 어려움',
@@ -142,7 +233,7 @@ export const IDIOMS_DATABASE: HanjaIdiom[] = [
     origin: '회남자(淮南子)',
   },
   {
-    id: 'id-17',
+    id: 'id-27',
     hanja: '螢雪之功',
     reading: '형설지공',
     meaning: '반딧불과 눈빛으로 글을 읽었다는 고사에서 온갖 고난을 이겨내며 공부함',
@@ -151,7 +242,7 @@ export const IDIOMS_DATABASE: HanjaIdiom[] = [
     origin: '진서(晉書)',
   },
   {
-    id: 'id-18',
+    id: 'id-28',
     hanja: '邯鄲之夢',
     reading: '한단지몽',
     meaning: '한단에서 꾼 꿈이라는 뜻으로, 인생의 부귀영화가 덧없음을 비유',
